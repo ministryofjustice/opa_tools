@@ -1,16 +1,29 @@
 # OPA Tools
 
-## Parse docx
-
-Parses an OPA rule document.
-
-### Setup
+## Setup
 
 ```
 python3 -m venv venv
 source venv/bin/activate
 pip3 install -r requirements.txt
 ```
+
+## docx2ruletxt
+
+Converts a .docx file, containing OPA rules, into .ruletxt format.
+
+.ruletxt is a format designed to contain all the OPA rule information, but in a simple text-based format, so that it is easier to write tools to process it, and include rules in test cases.
+
+To view a .docx file as .ruletxt:
+```
+source venv/bin/activate
+python docx2ruletxt.py ../laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/Rules/LAR/LAR\ System\ Rules.docx
+```
+
+
+## Parse docx
+
+Parses an OPA rule document.
 
 ### Run
 
