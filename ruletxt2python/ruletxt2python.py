@@ -22,15 +22,21 @@ def process_attributes(attributes_df):
     global attributes_converter
     global attributes_pattern
 
-    attributes_converter = {
-        attr: attribute_root_name_to_variable(attr)
-        for attr in attributes_df['Attribute Text']
-    }
+    attributes_converter = {}
+    for index, row in attributes_df.iterrows():
+        root_attribute = row['Attribute Text']
+        root_attribute_variable = attribute_root_name_to_variable(root_attribute)
+        attributes_converter[root_attribute.lower()] = f'{root_attribute_variable}'
+        if row.get('Negative') and isinstance(row['Negative'], str):
+            attributes_converter[row['Negative'].rstrip('.')] = f'not {root_attribute_variable}'
 
     # Sort attributes by length in descending order
+    
+    for key, value in attributes_converter.items():
+        if isinstance(key, float): print(repr(key), repr(value))
     sorted_attributes = sorted(attributes_converter.keys(), key=len, reverse=True)
     # Regex pattern that matches any of the attributes
-    attributes_pattern = re.compile('|'.join(re.escape(attr) for attr in sorted_attributes))
+    attributes_pattern = re.compile('|'.join(re.escape(attr) for attr in sorted_attributes), re.IGNORECASE)
 
 # for tests
 def get_attributes_converter():
@@ -104,8 +110,13 @@ def convert_logic_with_indents(input_logic_with_indents):
     return convert_logic(input_logic_by_level)
 
 def convert_logic(input_logic_by_level):
-    '''e.g. "the LAR rules apply to this application and"
-         -> "the_LAR_rules_apply_to_this_application and"
+    '''e.g. [(1, "both")
+             (2, "the partner is not included in the assessment and")
+             (2, "the client owns or have a financial interest in their main dwelling")]
+         -> ["(",
+             "    not the_partner_is_not_included_in_the_assessment and"
+             "    the_client_owns_or_have_a_financial_interest_in_their_main_dwelling"
+             ")"]
     '''
     output_logic = []
     line_index = -1
@@ -139,12 +150,34 @@ def convert_logic(input_logic_by_level):
                     else:
                         output_logic[-1] += f' {operator}'
                 else:
-                    operator_pattern = r"(any|all|both)$"
+                    operator_pattern = r"(any|all|both|either)$"
                     match = re.match(operator_pattern, canonized_input)
                     if match:
                         continue
                     else:
-                        assert 0, f"Could not parse line: {input_line!r} ({canonized_input})"
+                        pattern1 = r"<attr> (and|or|<>|=) <attr>$"
+                        pattern2 = r"<attr> (and|or|<>|=) (.*)$"
+                        match1 = re.match(pattern1, canonized_input)
+                        match2 = re.match(pattern2, canonized_input)
+                        if match1 or match2:
+                            operator = match2.groups()[0]
+                            if match1:
+                                right_hand_expression = attribute_incl_variants_to_variable(attributes[1])
+                            else:
+                                right_hand_expression = match2.groups()[1]
+                                # straighten curly quotes
+                                right_hand_expression = re.sub(r'[“”]', '"', right_hand_expression)
+                            OPERATOR_CONVERTER = {'<>': '!=', '=': '=='}
+                            if operator in OPERATOR_CONVERTER:
+                                operator = OPERATOR_CONVERTER[operator]
+                            output_logic.append('    ' * (level) + f'{attribute_incl_variants_to_variable(attributes[0])} {operator} {right_hand_expression}')
+                        else:
+                            pattern = r"it is known whether (or not )?<attr>$"
+                            match = re.match(pattern, canonized_input)
+                            if match:
+                                output_logic.append('    ' * (level) + f'{attribute_incl_variants_to_variable(attributes[0])} != None')
+                            else:
+                                assert 0, f"Could not parse line: {input_line!r} ({canonized_input})"
     # close any remaining braces
     if level > 0:
         for level in range(level - 1, -1, -1):

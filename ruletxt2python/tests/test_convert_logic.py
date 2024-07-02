@@ -12,6 +12,8 @@ the partner is not included in the assessment
 there will be any change in the LAR client's financial circumstances within the next 12 months
 the partner is included in the assessment
 there will be any change in the LAR client's or partner's financial circumstances within the next 12 months
+the MOD309 value
+the additional property is Subject Matter of Dispute within the proceedings to which this application relates
 '''
     process_attributes_csv_buffer(attributes)
 
@@ -66,6 +68,17 @@ any
     c_thing
 )'''
 
+    def test_either_or(self):
+        input = '''
+either
+    a thing or
+    b thing
+'''
+        assert convert_logic_with_indents(input) == '''(
+    a_thing or
+    b_thing
+)'''
+
     def test_nest(self):
         input = '''
 a thing and
@@ -99,3 +112,14 @@ or
     the_partner_is_included_in_the_assessment and
     there_will_be_any_change_in_the_LAR_client_s_or_partner_s_financial_circumstances_within_the_next_12_months
 )'''
+
+    def test_operator_expression(self):
+        assert convert_logic_with_indents('the MOD309 value <> “MOD309”') == 'the_MOD309_value != "MOD309"'
+
+    def test_is_known(self):
+        assert convert_logic_with_indents('it is known whether or not the additional property is Subject Matter of Dispute within the proceedings to which this application relates') == \
+            'the_additional_property_is_Subject_Matter_of_Dispute_within_the_proceedings_to_which_this_application_relates != None'
+
+    # def test_exists(self):
+    #     assert convert_logic_with_indents('Exists(the inquests, the inquest name is known)') == \
+    #         'TheInquest.exists(lambda e: e.the_inquest_name != None)'

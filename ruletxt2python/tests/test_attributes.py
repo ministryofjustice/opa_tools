@@ -52,3 +52,8 @@ class TestIdentifyAttributes:
     def test_substrings(self, substrings_csv):
         process_attributes_csv_buffer(substrings_csv)
         assert identify_attributes("a b a b c a b cc a b c d") == ('<attr> <attr> <attr>c <attr>', ['a b', 'a b c', 'a b c', 'a b c d'])
+
+    def test_negative(self):
+        process_attributes_csv_buffer('''Attribute Text,Negative
+the proceedings are all Special Children Act,The proceedings are not all Special Children Act.''')
+        assert identify_attributes("the proceedings are not all Special Children Act") == ('<attr>', ['the proceedings are not all Special Children Act'])

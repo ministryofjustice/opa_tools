@@ -10,14 +10,21 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Ensure you've installed Git Large File Storage, needed by the OPA repo:
+```sh
+brew install git-lfs
+# Update system git config
+git lfs install
+```
+
 Get the OPA rulebase, in the original Word & Excel docs:
 
 ```sh
 cd ~/code
-git clone git@github.com:ministryofjustice/laa-ccms-opa-policy-models.git
+git clone git@github.com:ministryofjustice/laa-ccms-opa-means-v23.git
 # If you've previously done this, move aside the old rules directory
 mv ~/code/laa-ccms-opa-policy-models-zips-extracted /tmp/
-unzip laa-ccms-opa-policy-models/MeansAssessment.zip -d ~/code/laa-ccms-opa-policy-models-zips-extracted
+unzip laa-ccms-opa-means-v23/MeansAssessment.zip -d ~/code/laa-ccms-opa-policy-models-zips-extracted
 ```
 
 Clone the ruletxt repository, which is where the resulting ruletxt will be written:
@@ -45,7 +52,7 @@ python docx2ruletxt.py ../laa-ccms-opa-policy-models-zips-extracted/MeansAssessm
 Locate the folders for the extracted zip and output repo (adjust these if you put them elsewhere):
 
 ```sh
-export OPA_REPO_DIR=~/code/laa-ccms-opa-policy-models
+export OPA_REPO_DIR=~/code/laa-ccms-opa-means-v23
 export EXTRACTED_MODELS_DIR=~/code/laa-ccms-opa-policy-models-zips-extracted
 export RULETXT_DIR=~/code/laa-ccms-opa-means-assessment-ruletxt
 export PYTHON_CMD=~/code/opa_tools/venv/bin/python
@@ -90,13 +97,26 @@ git push
 
 Converts ruletxt files to Python code.
 
+### Extra setup
+
+Get a copy of the attributes, directly from Oracle Policy Modelling:
+
+In your AWS WorkSpace:
+* Install OPA from: "P:\Install Files\CIS_Install\OPM zips\OPM 23B installer"
+* Download the [rulebase .zip](https://github.com/ministryofjustice/laa-ccms-opa-means-v23/blob/main/MeansAssessment.zip), unzip it, and put the folder into ~\Documents\Oracle Policy Modeling Projects
+* Select "Data" tab, select "Flat view", select "Export"
+* Copy the resulting CSVs (via your Google Drive) to ~/code/opa_tools/
+
+(To make getting the attributes easier, we should extract these CSVs during the OPA CI using [OPMExport.exe](https://documentation.custhelp.com/euf/assets/devdocs/unversioned/IntelligentAdvisor/en/Content/Guides/Use_Intelligent_Advisor/Command_line_tools/Export_data_model_from_command_line.htm))
+
+
 ### Run
 
 To convert one file:
 
 ```sh
 source venv/bin/activate
-python ruletxt2python/ruletxt2python.py 2023_08_28_opa_means_assessment_all_attributes.csv ../laa-ccms-opa-means-assessment-ruletxt/LAR/LAR_System_Rules.ruletxt
+python ruletxt2python/ruletxt2python.py attributes-2024-07-02-23b.csv ../laa-ccms-opa-means-assessment-ruletxt/Work\ Package\ 1/WP1._\(1-7\).ruletxt
 ```
 
 ### Convert all files
