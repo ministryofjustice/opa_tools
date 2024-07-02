@@ -7,7 +7,7 @@ A selection of tools for working with OPA (Oracle Policy Automation) rulebases.
 ```
 python3 -m venv venv
 source venv/bin/activate
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Get the OPA rulebase, in the original Word & Excel docs:
@@ -43,9 +43,9 @@ Locate the folders for the extracted zip and output repo (adjust these if you pu
 ```sh
 export OPA_REPO_DIR=~/code/laa-ccms-opa-policy-models
 export EXTRACTED_MODELS_DIR=~/code/laa-ccms-opa-policy-models-zips-extracted
-export OUT_DIR=~/code/laa-ccms-opa-means-assessment-ruletxt
+export RULETXT_DIR=~/code/laa-ccms-opa-means-assessment-ruletxt
 export PYTHON_CMD=~/code/opa_tools/venv/bin/python
-export PARSE_PY=~/code/opa_tools/docx2ruletxt.py
+export DOCX2RULETXT=~/code/opa_tools/docx2ruletxt.py
 ```
 
 Get the latest the Word docs:
@@ -63,57 +63,76 @@ Convert the Word docs:
 cd $EXTRACTED_MODELS_DIR/MeansAssessment/rules
 find . -name "*.docx" -exec sh -c '
   FILE="$1"
-  OUT_DIR="$2"
+  RULETXT_DIR="$2"
   DIRNAME=$(dirname "$FILE")
   BASENAME=$(basename "$FILE" .docx)
   NEWNAME="${BASENAME// /_}.ruletxt"
-  DEST_DIR="$OUT_DIR/$DIRNAME"
+  DEST_DIR="$RULETXT_DIR/$DIRNAME"
   mkdir -p "$DEST_DIR"
-  $PYTHON_CMD $PARSE_PY "$FILE" "$DEST_DIR/$NEWNAME" || echo "$FILE"
-' sh {} "$OUT_DIR" \;
+  $PYTHON_CMD $DOCX2RULETXT "$FILE" "$DEST_DIR/$NEWNAME" || echo "$FILE"
+' sh {} "$RULETXT_DIR" \;
 ```
 
-Commit the changes to this repo:
+Commit the changes to the repo:
 ```sh
-cd $OUT_DIR
+cd $RULETXT_DIR
 ```
 
 
-## Parse docx
+## Convert to Python
 
-Parses an OPA rule document.
+Converts ruletxt files to Python code.
 
 ### Run
 
-To parse one file:
+To convert one file:
 ```
 source venv/bin/activate
-python parse_docx.py ../laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/Rules/LAR/LAR\ System\ Rules.docx
+python ruletxt2python/ruletxt2python.py 2023_08_28_opa_means_assessment_all_attributes.csv ../laa-ccms-opa-means-assessment-ruletxt/LAR/LAR_System_Rules.ruletxt
 ```
 
-### Parse all .docx files
+### Convert all files
 
-Locate the folders for the extracted zip and markdown repo (adjust these if you put them elsewhere):
+Locate the folders (adjust these if you put them elsewhere):
 
-```sh
-export IN_DIR=~/code/laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/rules
-export OUT_DIR=~/code/laa-ccms-opa-means-assessment-python
+export RULETXT_DIR=~/code/laa-ccms-opa-means-assessment-ruletxt
+export RULEPYTHON_DIR=~/code/laa-ccms-opa-means-assessment-python
 export PYTHON_CMD=~/code/opa_tools/venv/bin/python
-export PARSE_PY=~/code/opa_tools/parse_docx.py
+export DOCX2RULETXT=~/code/opa_tools/docx2ruletxt.py
 ```
 
-Convert the Word docs to python:
-
+Get the latest the ruletxt docs:
 ```sh
-cd $IN_DIR
-# the next command is creating directories - you can ignore "File exists" errors
-find . -type d -print0 | sed 's/ /_/g' | xargs -0 -I % -n1 mkdir "$OUT_DIR/%"
-find . -name "*.docx" -exec sh -c '$PYTHON_CMD $PARSE_PY "$0" "$OUT_DIR/${0// /_}.py" || echo "$0"' {}  \;
+cd $RULETXT_DIR
+git pull
 ```
 
-Commit the changes to this repo:
+Convert:
+
 ```sh
-cd $OUT_DIR
+cd $RULETXT_DIR
+find . -name "*.ruletxt" -exec sh -c '
+  FILE="$1"
+  RULEPYTHON_DIR="$2"
+  DIRNAME=$(dirname "$FILE")
+  BASENAME=$(basename "$FILE" .docx)
+  NEWNAME="${BASENAME// /_}.py"
+  DEST_DIR="$RULEPYTHON_DIR/$DIRNAME"
+  mkdir -p "$DEST_DIR"
+  $PYTHON_CMD $DOCX2RULETXT "$FILE" "$DEST_DIR/$NEWNAME" || echo "$FILE"
+' sh {} "$RULEPYTHON_DIR" \;
+```
+
+Commit the changes to the repo:
+```sh
+cd $RULEPYTHON_DIR
+```
+
+### Tests
+
+```
+source venv/bin/activate
+pytest
 ```
 
 ## Importer

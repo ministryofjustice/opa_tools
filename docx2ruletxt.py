@@ -4,7 +4,6 @@ import sys
 import docx
 
 
-#input_filepath = os.path.expanduser("~/code/laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/Rules/LAR/LAR System Rules.docx")
 if len(sys.argv) > 1:
     input_filepath = sys.argv[1]
     if os.path.basename(input_filepath).startswith('~$'):
@@ -88,9 +87,3 @@ for doc_index, doc_object in enumerate(document.iter_inner_content()):
         process_table(doc_object, doc_index)
     else:
         print_('ERROR', f'Unhandled doc object: {type(doc_object)}')
-
-
-# for table_index, table in enumerate(document.tables):
-#     # print(f'Table {table_index}:')
-    
-    
