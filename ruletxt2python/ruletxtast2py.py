@@ -2,6 +2,10 @@ import ast
 from ast import Expr, List, Constant, Load, Name, Store
 
 class Actions(object):
+    def document(self, input, start, end, elements):
+        rule = elements[1]
+        return rule
+    
     def if_block(self, input, start, end, elements):
         attribute = elements[2]
         expression = elements[6]
@@ -29,12 +33,10 @@ class Actions(object):
             op = ast.Or()
         else:
             raise NotImplementedError()
-        return Expr(
-            value=ast.BoolOp(
+        return ast.BoolOp(
                 op=op,
                 values=expressions,
                 type_ignores=[])
-            )
 
     def bracketed_operator_expression(self, input, start, end, elements):
         expressions = [
@@ -53,17 +55,15 @@ class Actions(object):
             op = ast.Or()
         else:
             raise NotImplementedError()
-        return Expr(
-            value=ast.BoolOp(
+        return ast.BoolOp(
                 op=op,
                 values=expressions,
                 type_ignores=[])
-            )
 
     def string(self, input, start, end, elements):
         name = elements[1].text
         return ast.Constant(value=name)
 
     def attribute(self, input, start, end, elements):
-        name = elements[1].text
-        return Name(id=name, ctx=Load())
+        name = ''.join((e.text for e in elements))
+        return Name(id=name, ctx=Store())

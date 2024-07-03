@@ -31,7 +31,7 @@ def print_tree(node, label='tree', indent=0):
 #     process_attributes_csv_buffer(attributes)
 
 def test_if():
-    input = '''[OPM-conclusion]  "d" if
+    input = '''[OPM-conclusion]  abc if
 [OPM-level1] "z" or
 [OPM-level1] all
 [OPM-level2(]   "a"
@@ -41,6 +41,9 @@ def test_if():
 '''
     tree = parse(input, actions=Actions())
     print_tree(tree)
+    ast_ = tree.elements[0].elements[0]
+    # assert ast.dump(ast_) == "Assign(targets=[Name(id='abc', ctx=Store())], value=BoolOp(op=Or(), values=[Constant(value='z'), BoolOp(op=And(), values=[Constant(value='a'), Constant(value='b'), Constant(value='c')])]))"
+    assert ast.unparse(ast_) == "abc = 'z' or ('a' and 'b' and 'c')"
 
 def test_if2():
     input = '''[OPM-conclusion]        the_upcoming_changes_section_is_visible if

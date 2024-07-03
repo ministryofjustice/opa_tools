@@ -1,13 +1,10 @@
 grammar CanopyJson
 
-Document  <- __ (Rule __)*
+Document  <- __ (Rule __)* %document
 Rule      <- IfBlock / Assignment
 
 Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression
 IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ Expression %if_block
-
-#  Expression  <- '(' ']'? Whitespace? Expression Whitespace? OPMLevelUpToBrackets? ')' / OperatorExpression / Literal / Attribute
-#  AndExpression <- Expression ( WhitespaceAndOPMLevel 'and' WhitespaceAndOPMLevel Expression )+
 
 Expression     <-  __ (OperatorExpression / BracketedOperatorExpression / string) __ %expression
 
@@ -26,6 +23,6 @@ OPMLevelUpToBrackets <- "[OPM-level" [\d]
 AllEtc  <- "all" / "both" / "any" / "either"
 Operator <- "and" / "or"
 string    <-  '"' ("\\" . / [^"])* '"' %string
-attribute    <-  '"' ("\\" . / [^"])* '"' %attribute
+attribute <- [^ ]+ %attribute
 __        <-  [\s]*
 
