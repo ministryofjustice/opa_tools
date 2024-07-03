@@ -100,16 +100,25 @@ Converts ruletxt files to Python code.
 
 ### Extra setup
 
-Get a copy of the attributes, directly from Oracle Policy Modelling:
+1. Get a copy of the attributes, directly from Oracle Policy Modelling:
 
-In your AWS WorkSpace:
-* Install OPA from: "P:\Install Files\CIS_Install\OPM zips\OPM 23B installer"
-* Download the [rulebase .zip](https://github.com/ministryofjustice/laa-ccms-opa-means-v23/blob/main/MeansAssessment.zip), unzip it, and put the folder into ~\Documents\Oracle Policy Modeling Projects
-* Select "Data" tab, select "Flat view", select "Export"
-* Copy the resulting CSVs (via your Google Drive) to ~/code/opa_tools/
+    In your AWS WorkSpace:
+    * Install OPA from: "P:\Install Files\CIS_Install\OPM zips\OPM 23B installer"
+    * Download the [rulebase .zip](https://github.com/ministryofjustice/laa-ccms-opa-means-v23/blob/main/MeansAssessment.zip), unzip it, and put the folder into ~\Documents\Oracle Policy Modeling Projects
+    * Select "Data" tab, select "Flat view", select "Export"
+    * Copy the resulting CSVs (via your Google Drive) to ~/code/opa_tools/
 
-(To make getting the attributes easier, we should extract these CSVs during the OPA CI using [OPMExport.exe](https://documentation.custhelp.com/euf/assets/devdocs/unversioned/IntelligentAdvisor/en/Content/Guides/Use_Intelligent_Advisor/Command_line_tools/Export_data_model_from_command_line.htm))
+    (To make getting the attributes easier, we should extract these CSVs during the OPA CI using [OPMExport.exe](https://documentation.custhelp.com/euf/assets/devdocs/unversioned/IntelligentAdvisor/en/Content/Guides/Use_Intelligent_Advisor/Command_line_tools/Export_data_model_from_command_line.htm))
 
+2. Compile the parser:
+
+    ```sh
+    cd ~/code/opa_tools
+    nvm install 16
+    nvm use 16
+    npm install canopy
+    ./node_modules/canopy/bin/canopy ruletxt2python/ruletxt.peg --lang python --output ruletxt2python/parser
+    ```
 
 ### Run
 
