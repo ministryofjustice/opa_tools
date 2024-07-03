@@ -28,16 +28,31 @@ def print_(header_tag, body):
         body = body.replace('\n', '\\n')
     line = f'[{header_tag}] {padding} {body}'
     if f:
-        print(line, file=f)
+        print(line.rstrip(), file=f)
     else:
-        print(line)    
+        print(line)
 
+def close_paragraph_brackets():
+    global current_indent
+    print_('close-bracket' + ')' * (current_indent - 1), '')
+    current_indent = 1
 
 def process_paragraph(p, doc_index):
+    global current_indent
     style = p.style.style_id
-    indent = 0
+    indent = 1
+
     if style.startswith('OPM-level'):
+        # add brackets, to make it parsable with a CFL
         indent = int(style.split('OPM-level')[1])
+        if indent > current_indent:
+            style += '(' * (indent - current_indent)
+        elif indent < current_indent:
+            style += ')' * (current_indent - indent)
+        current_indent = indent
+    if current_indent > 1 and style == 'OPM-conclusion':
+        close_paragraph_brackets()
+
     print_(style, '    ' * (indent - 1)+ f'{p.text}')
 
 def process_table(table, doc_index):
@@ -80,10 +95,13 @@ def process_nonrule_table(table, doc_index):
         print_('nonrule-table', ' | '.join((cell.text for cell in row_cells)))
 
 document = docx.Document(input_filepath)
+current_indent = 1
 for doc_index, doc_object in enumerate(document.iter_inner_content()):
     if isinstance(doc_object, docx.text.paragraph.Paragraph):
         process_paragraph(doc_object, doc_index)
     elif isinstance(doc_object, docx.table.Table):
+        if current_indent > 1:
+            close_paragraph_brackets()
         process_table(doc_object, doc_index)
     else:
         print_('ERROR', f'Unhandled doc object: {type(doc_object)}')

@@ -82,6 +82,7 @@ find . -name "*.docx" -exec sh -c '
   mkdir -p "$DEST_DIR"
   $PYTHON_CMD $DOCX2RULETXT "$FILE" "$DEST_DIR/$NEWNAME" || echo "$FILE"
 ' sh {} "$RULETXT_DIR" \;
+cd $RULETXT_DIR
 ```
 
 Commit the changes to the repo:
