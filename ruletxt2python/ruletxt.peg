@@ -1,46 +1,31 @@
-grammar ruletxt
-  
-  Document       <- Whitespace* (Rule Whitespace)*
-  Rule           <- Conclusion (Whitespace LevelLine)*
-  Conclusion <- '[OPM-conclusion]' Whitespace (IfBlock / Assignment)
+grammar CanopyJson
 
-  IfBlock <- Attribute Whitespace 'if' Whitespace Expression %make_if
-  Assignment <- Attribute '=' 'dummy'
+Document  <- __ (Rule __)*
+Rule      <- IfBlock / Assignment
 
+Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression
+IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ Expression %if_block
 
-#  LevelLine      <- '[OPM-level' Level ']' Whitespace LevelStatement
-#  LevelStatement <-
-#  Text             <- (!Whitespace .)+
-  Level          <- [\d]+
+#  Expression  <- '(' ']'? Whitespace? Expression Whitespace? OPMLevelUpToBrackets? ')' / OperatorExpression / Literal / Attribute
+#  AndExpression <- Expression ( WhitespaceAndOPMLevel 'and' WhitespaceAndOPMLevel Expression )+
 
-  Expression  <- '(' ']'? Whitespace? Expression Whitespace? OPMLevelBeforeBrackets? ')' / AndExpression / Literal / Attribute
-  AndExpression <- Expression ( WhitespaceAndOPMLevel 'and' WhitespaceAndOPMLevel Expression )+
+Expression     <-  __ (OperatorExpression / BracketedOperatorExpression / string) __ %expression
 
-#                             all
+OperatorExpression <- OPMLevel __ AllEtc? __ Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ %operator_expression
+
+### Bracketed sections
+# These are complicated due to the line headers. Example:
 # [OPM-level3(]                   the client and/or partner do not have a letter confirming current receipt of a passporting benefit
 # [OPM-level3]                    and
 # [OPM-level3]                    the passported benefit being received is not Income Support
 # [OPM-level2)]
+BracketedOperatorExpression     <- AllEtc? __ OPMLevelUpToBrackets? "(" "]"? Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ __ OPMLevelUpToBrackets? ")" "]"? %bracketed_operator_expression
+OPMLevel <- "[OPM-level" [\d] "]"
+OPMLevelUpToBrackets <- "[OPM-level" [\d]
 
+AllEtc  <- "all" / "both" / "any" / "either"
+Operator <- "and" / "or"
+string    <-  '"' ("\\" . / [^"])* '"' %string
+attribute    <-  '"' ("\\" . / [^"])* '"' %attribute
+__        <-  [\s]*
 
-#  Expression  <- OrExpression
-#  OrExpression <- AndExpression (Or AndExpression)*
-#  AndExpression <- NotExpression (And NotExpression)*
-#  NotExpression <- Not? Primary
-#  Primary    <- Number / Attribute / Group
-#  Group      <- '(' Expression ')'
-  Attribute  <- [a-zA-Z_]+
-#  Or         <- 'or'
-#  And        <- 'and'
-#  Not        <- 'not'
-
-  Whitespace       <- [ \t\r\n]+
-  WhitespaceAndOPMLevel <- Whitespace OPMLevel? Whitespace
-  OPMLevel <- "[OPM-level" [\d] "]"
-  OPMLevelBeforeBrackets <- "[OPM-level" [\d]
-
-### Primitives
-  Literal    <- Number / Bool / String
-  String    <-  '"' ("\\" . / [^"])* '"'
-  Number     <- '-'? [\d]+
-  Bool       <- 'true' / 'false'

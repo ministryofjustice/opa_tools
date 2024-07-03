@@ -8,7 +8,6 @@ def print_tree(node, label='tree', indent=0):
     if isinstance(node, TreeNode):
         text = node.text
     elif isinstance(node, ast.AST):
-        breakpoint()
         text = ast.unparse(node)
     else:
         text = repr(node)
@@ -32,6 +31,18 @@ def print_tree(node, label='tree', indent=0):
 #     process_attributes_csv_buffer(attributes)
 
 def test_if():
+    input = '''[OPM-conclusion]  "d" if
+[OPM-level1] "z" or
+[OPM-level1] all
+[OPM-level2(]   "a"
+[OPM-level2]    and
+[OPM-level2]    "b" and "c"
+[OPM-level1)]
+'''
+    tree = parse(input, actions=Actions())
+    print_tree(tree)
+
+def test_if2():
     input = '''[OPM-conclusion]        the_upcoming_changes_section_is_visible if
 # [OPM-level1]            the_LAR_rules_apply_to_this_application and
 # [OPM-level1]            some_attribute
