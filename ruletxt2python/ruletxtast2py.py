@@ -6,13 +6,12 @@ class Actions(object):
         self.imports = []
 
     def document(self, input, start, end, elements):
-        rule = elements[1]
-        return rule
-        # body = [rule.elements[0].elements[0]]
+        rules = elements[1]
+        body = [element.elements[0] for element in rules.elements]
 
-        # imports = [ast.Import(names=[ast.alias(name=import_)]) for import_ in self.imports]
-        # return ast.Module(body=imports + body,
-        #                   type_ignores=[])
+        imports = [ast.Import(names=[ast.alias(name=import_)]) for import_ in self.imports]
+        return ast.Module(body=imports + body,
+                          type_ignores=[])
     
     def assignment(self, input, start, end, elements):
         attribute = elements[2]
