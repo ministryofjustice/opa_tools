@@ -44,39 +44,38 @@ class Actions(object):
         expressions.extend(
             [element.Expression for element in loop.elements]
         )
-
-        if operator.text == 'and':
-            op = ast.And()
-        elif operator.text == 'or':
-            op = ast.Or()
-        else:
-            raise NotImplementedError()
-        return ast.BoolOp(
-                op=op,
-                values=expressions,
-                type_ignores=[])
+        return self._operator_expression(operator, expressions)
 
     def bracketed_operator_expression(self, input, start, end, elements):
-        expressions = [
-            elements[5]
-        ]
+        expressions = [elements[5]]
         loop = elements[8]
         operator = loop.elements[0].Operator
         expressions.extend(
             [element.Expression for element in loop.elements]
         )
+        return self._operator_expression(operator, expressions)
 
-        # todo more expressions
+    def _operator_expression(self, operator, expressions):
         if operator.text == 'and':
             op = ast.And()
         elif operator.text == 'or':
             op = ast.Or()
+        elif operator.text == '<>':
+            op = ast.NotEq()
         else:
             raise NotImplementedError()
-        return ast.BoolOp(
+        if type(op) in (ast.And, ast.Or):
+            return ast.BoolOp(
                 op=op,
                 values=expressions,
                 type_ignores=[])
+        else:
+            assert len(expressions) == 2
+            return ast.Compare(
+                left=expressions[0],
+                ops=[op],
+                comparators=[expressions[1]]
+            )
 
     def comment(self, input, start, end, elements):
         comment_text = elements[2]

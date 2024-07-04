@@ -98,3 +98,11 @@ def test_empty_conclusion():
     python_file = parse(input, actions=Actions())
     python_file.get_code()
     assert python_file.get_code().rstrip() == "#\n#"
+
+def test_operator_not_equals():
+    input = '''[OPM-conclusion] things are good if
+[OPM-level1] the day is <> “Friday”
+'''
+    python_file = parse(input, actions=Actions())
+    python_file.get_code()
+    assert python_file.get_code().rstrip() == "things_are_good = the_day_is != 'Friday'"

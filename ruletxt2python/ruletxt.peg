@@ -25,7 +25,7 @@ CommentText <- [^\n]+
 EmptyConclusion <- '[OPM-conclusion]' [ ]* [\n] %empty_conclusion
 
 AllEtc  <- "all" / "both" / "any" / "either"
-Operator <- "and" / "or"
+Operator <- "and" / "or" / "<>"
 string    <-  quote ("\\" . / notaquote)* quote %string
 quote     <- ["“”]
 notaquote <- [^"“”]
