@@ -26,6 +26,7 @@ string    <-  quote ("\\" . / notaquote)* quote %string
 quote     <- ["“”]
 notaquote <- [^"“”]
 date      <- [\d]{4} "-" [\d]{2} "-" [\d]{2} %date
-attribute <- [^ =<>"“”]+ %attribute
+attribute <- attribute_word (!(" if" / " and" / " or") " " attribute_word)* %attribute
+attribute_word <- [^=<>"“”\[\]\n ]+
 __        <-  [\s]*
 

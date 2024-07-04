@@ -1,3 +1,5 @@
+from .ruletxt2python import attribute_incl_variants_to_variable
+
 import ast
 from ast import Expr, List, Constant, Load, Name, Store
 
@@ -89,4 +91,5 @@ class Actions(object):
 
     def attribute(self, input, start, end, elements):
         name = ''.join((e.text for e in elements))
+        name = attribute_incl_variants_to_variable(name)
         return Name(id=name, ctx=Store())
