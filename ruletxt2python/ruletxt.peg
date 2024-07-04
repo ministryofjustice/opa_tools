@@ -1,12 +1,12 @@
-grammar CanopyJson
+grammar Ruletxt
 
 Document  <- __ (Rule __)* %document
 Rule      <- IfBlock / Assignment
 
-Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression
+Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression %assignment
 IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ Expression %if_block
 
-Expression     <-  __ (OperatorExpression / BracketedOperatorExpression / attribute / string) __ %expression
+Expression     <-  __ (OperatorExpression / BracketedOperatorExpression / date / attribute / string) __ %expression
 
 OperatorExpression <- OPMLevel __ AllEtc? __ Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ %operator_expression
 
@@ -22,7 +22,10 @@ OPMLevelUpToBrackets <- "[OPM-level" [\d]
 
 AllEtc  <- "all" / "both" / "any" / "either"
 Operator <- "and" / "or"
-string    <-  '"' ("\\" . / [^"])* '"' %string
-attribute <- [^ "]+ %attribute
+string    <-  quote ("\\" . / notaquote)* quote %string
+quote     <- ["“”]
+notaquote <- [^"“”]
+date      <- [\d]{4} "-" [\d]{2} "-" [\d]{2} %date
+attribute <- [^ =<>"“”]+ %attribute
 __        <-  [\s]*
 

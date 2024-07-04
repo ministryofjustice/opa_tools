@@ -21,43 +21,48 @@ def print_tree(node, label='tree', indent=0):
         label = element_to_label.get(element, f'{i}')
         print_tree(element, label, indent + 1)
 
-# @pytest.fixture(autouse=True)
-# def process_attributes():
-#     attributes = '''Attribute Text
-# the upcoming changes section is visible
-# the LAR rules apply to this application
-# the client is passported
-# '''
-#     process_attributes_csv_buffer(attributes)
+def test_if_simple():
+    input = '''[OPM-conclusion]        the_upcoming_changes_section_is_visible if
+[OPM-level1]            the_LAR_rules_apply_to_this_application and
+[OPM-level1]            some_attribute
+'''
+    tree = parse(input, actions=Actions())
+    print_tree(tree)
+    ast_ = tree.elements[0].elements[0]
+    #assert ast.dump(ast_) == "Assign(targets=[Name(id='the_upcoming_changes_section_is_visible', ctx=Store())], value=BoolOp(op=And(), values=[Name(id='the_LAR_rules_apply_to_this_application', ctx=Load()), Name(id='some_attribute', ctx=Load())]))"
+    assert ast.unparse(ast_) == "the_upcoming_changes_section_is_visible = the_LAR_rules_apply_to_this_application and some_attribute\n"
 
-def test_if():
+def test_if_nested():
     input = '''[OPM-conclusion]  abc if
 [OPM-level1] "z" or
 [OPM-level1] all
 [OPM-level2(]   "a"
 [OPM-level2]    and
 [OPM-level2]    "b" and "c"
-[OPM-level1)]
-'''
+[OPM-level1)]'''
     tree = parse(input, actions=Actions())
     print_tree(tree)
     ast_ = tree.elements[0].elements[0]
     # assert ast.dump(ast_) == "Assign(targets=[Name(id='abc', ctx=Store())], value=BoolOp(op=Or(), values=[Constant(value='z'), BoolOp(op=And(), values=[Constant(value='a'), Constant(value='b'), Constant(value='c')])]))"
     assert ast.unparse(ast_) == "abc = 'z' or ('a' and 'b' and 'c')"
 
-def test_if2():
-    input = '''[OPM-conclusion]        the_upcoming_changes_section_is_visible if
-[OPM-level1]            the_LAR_rules_apply_to_this_application and
-[OPM-level1]            some_attribute
-'''
-# [OPM-level1]            any
-# [OPM-level2]                the_application_is_Special_Children_Act
-# [OPM-level2]                or
-# [OPM-level2]                the_application_is_Illegal_Immigration_Act
-# '''
-    expected_output = None
-
+def test_assignment():
+    input = '''[OPM-conclusion]        the_version_number_of_the_means_rulebase = "v4.2.8"'''
     tree = parse(input, actions=Actions())
+    print_tree(tree)
     ast_ = tree.elements[0].elements[0]
-    assert ast.unparse(ast_) == "the_upcoming_changes_section_is_visible = the_LAR_rules_apply_to_this_application and some_attribute\n"
+    assert ast.unparse(ast_) == "the_version_number_of_the_means_rulebase = 'v4.2.8'"
 
+def test_curly_quotes():
+    input = '''[OPM-conclusion] a = “23B”'''
+    tree = parse(input, actions=Actions())
+    print_tree(tree)
+    ast_ = tree.elements[0].elements[0]
+    assert ast.unparse(ast_) == "a = '23B'"
+
+def test_date():
+    input = '''[OPM-conclusion] the_version_date_of_the_means_rulebase = 2024-07-02'''
+    tree = parse(input, actions=Actions())
+    print_tree(tree)
+    ast_ = tree.elements[0].elements[0]
+    assert ast.unparse(ast_) == "the_version_date_of_the_means_rulebase = datetime.date(2024, 7, 2)"
