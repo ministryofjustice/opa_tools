@@ -47,8 +47,8 @@ def test_if():
 
 def test_if2():
     input = '''[OPM-conclusion]        the_upcoming_changes_section_is_visible if
-# [OPM-level1]            the_LAR_rules_apply_to_this_application and
-# [OPM-level1]            some_attribute
+[OPM-level1]            the_LAR_rules_apply_to_this_application and
+[OPM-level1]            some_attribute
 '''
 # [OPM-level1]            any
 # [OPM-level2]                the_application_is_Special_Children_Act
@@ -58,11 +58,6 @@ def test_if2():
     expected_output = None
 
     tree = parse(input, actions=Actions())
-    print_tree(tree)
-    # breakpoint()
+    ast_ = tree.elements[0].elements[0]
+    assert ast.unparse(ast_) == "the_upcoming_changes_section_is_visible = the_LAR_rules_apply_to_this_application and some_attribute\n"
 
-    # pycode = parse(input, )
-    # print(pycode)
-
-    # assert tree == expected_output
-    raise 0
