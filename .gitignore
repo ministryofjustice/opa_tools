@@ -4,4 +4,4 @@ venv
 __pycache__
 .DS_Store
 node_modules
-ruletxt2python/parser.py
+ruletxt2python/ruletxt_parser.py

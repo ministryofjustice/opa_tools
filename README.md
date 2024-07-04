@@ -1,23 +1,24 @@
 # OPA Tools
 
-A selection of tools for working with OPA (Oracle Policy Automation) rulebases.
+A selection of tools for working with OIA (Oracle Intelligent Advisor) or OPA (Oracle Policy Automation) rulebases, which are Word and Excel files, authored with OPM (Oracle Policy Modeling). Read more about the tools and formats below.
 
 ## Setup
 
 ```sh
 python3 -m venv venv
 source venv/bin/activate
+pip install -e .
 pip install -r requirements.txt
 ```
 
-Ensure you've installed Git Large File Storage, needed by the OPA repo:
+Ensure you've installed Git Large File Storage, needed by MOJ's rulebase repo:
 ```sh
 brew install git-lfs
 # Update system git config
 git lfs install
 ```
 
-Get the OPA rulebase, in the original Word & Excel docs:
+Get the rulebase, in the original Word & Excel docs:
 
 ```sh
 cd ~/code
@@ -36,9 +37,7 @@ git clone git@github.com:ministryofjustice/laa-ccms-opa-means-assessment-ruletxt
 
 ## docx2ruletxt
 
-Converts a .docx file, containing OPA rules, into .ruletxt format.
-
-.ruletxt is a format designed to contain all the OPA rule information, but in a simple text-based format, so that it is easier to write tools to process it, and include rules in test cases.
+Converts a .docx file, containing OPA rules, into .ruletxt format. See below about .ruletxt.
 
 To view a .docx file as .ruletxt:
 
@@ -117,7 +116,7 @@ Converts ruletxt files to Python code.
     nvm install 16
     nvm use 16
     npm install canopy
-    ./node_modules/canopy/bin/canopy ruletxt2python/ruletxt.peg --lang python --output ruletxt2python/parser
+    ./node_modules/canopy/bin/canopy ruletxt2python/ruletxt.peg --lang python --output ruletxt2python/ruletxt_parser
     ```
 
 ### Run
@@ -183,3 +182,39 @@ Imports a CSV into a sqlite database. It's useful to import a CSV of OPA attribu
 source venv/bin/activate
 python import.py
 ```
+
+## OIA's "docx" files
+
+The docx file contains rules, either in paragraphs or in tables (containing paragraphs).
+The rule information is contained in the *text*, paragraph *style* and *table* structure.
+
+[Rules documentation](https://documentation.custhelp.com/euf/assets/devdocs/unversioned/IntelligentAdvisor/en/Content/Guides/Use_Intelligent_Advisor/Use_Policy_Modeling/Work_with_rules/Work_with_rules.htm)
+
+We use the 'docx' python library to parse the docx file, because it's simple.
+
+## If block
+
+This example shows the styles for each paragraph:
+```
+[OPM-conclusion] the upcoming changes section is visible if
+[OPM-level1]     the LAR rules apply to this application and
+[OPM-level2]       the client is under 18 or
+[OPM-level2]       the client is passported
+```
+
+## Tables
+
+This example shows the typical structure and styles:
+```
+[OPM-conclusion] the name change Funding Code to LAPSO
+[OPM-conclusion] "Funding Code" | [OPM-level1] the LAR rules do not apply to this application
+[OPM-conclusion] "Lord Chancellor’s Guidance on financial eligibility for certificated work" |	[OPM-Alternativeconclusion] otherwise
+```
+
+# Ruletxt format
+
+Ruletxt is a file format designed (with the creation of this repository) to contain all the OPA rule information, but in a simple text-based format. This is useful for a few reasons:
+
+* changes can be tracked with git and diff (whereas Word and Excel are opaque)
+* tools for processing ruletxt are easier to write for Ruletxt, than Word & Excel
+* test cases (for tools) can include rules

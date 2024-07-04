@@ -1,8 +1,11 @@
-import argparse
-from io import StringIO
-import re
+from parser_actions import Actions
+from ruletxt_parser import parse
+from attributes import identify_attributes, attribute_incl_variants_to_variable, attribute_root_name_to_variable
 
-import pandas as pd
+import argparse
+import re
+import ast
+
 
 
 parse_state = None
@@ -10,78 +13,6 @@ logic = []
 code = []
 attributes_converter = None
 attributes_pattern = None
-
-
-def process_attributes_csv(attributes_csv_filepath):
-    process_attributes(pd.read_csv(attributes_csv_filepath))
-
-def process_attributes_csv_buffer(attributes_csv_buffer):
-    process_attributes(pd.read_csv(StringIO(attributes_csv_buffer)))
-
-def process_attributes(attributes_df):
-    global attributes_converter
-    global attributes_pattern
-
-    attributes_converter = {}
-    for index, row in attributes_df.iterrows():
-        root_attribute = row['Attribute Text']
-        root_attribute_variable = attribute_root_name_to_variable(root_attribute)
-        attributes_converter[root_attribute.lower()] = f'{root_attribute_variable}'
-        if row.get('Negative') and isinstance(row['Negative'], str):
-            attributes_converter[row['Negative'].rstrip('.')] = f'not {root_attribute_variable}'
-
-    # Sort attributes by length in descending order
-    
-    for key, value in attributes_converter.items():
-        if isinstance(key, float): print(repr(key), repr(value))
-    sorted_attributes = sorted(attributes_converter.keys(), key=len, reverse=True)
-    # Regex pattern that matches any of the attributes
-    attributes_pattern = re.compile('|'.join(re.escape(attr) for attr in sorted_attributes), re.IGNORECASE)
-
-# for tests
-def get_attributes_converter():
-    return attributes_converter
-
-
-def identify_attributes(line):
-    '''Replaces attribute names in the line with "<attr>". Is greedy.'''
-    matched_attributes = []
-
-    def replace_match(match):
-        matched_attributes.append(match.group(0))
-        return '<attr>'
-    
-    result_line = attributes_pattern.sub(replace_match, line)
-    
-    return result_line, matched_attributes
-
-
-def attribute_root_name_to_variable(attribute_name):
-    '''Convert a root attribute name to a variable name
-    
-    e.g. 'is over 18'
-      -> 'is_over_18'
-    '''
-    # Replace spaces with underscores
-    s = attribute_name.replace(' ', '_')
-    # Remove all non-alphanumeric characters and underscores
-    s = re.sub(r'[^0-9a-zA-Z_]', '', s)
-    # Ensure the variable name doesn't start with a digit
-    if s and s[0].isdigit():
-        s = '_' + s
-    return s
-
-def attribute_incl_variants_to_variable(attribute_name_including_variants):
-    '''Convert an attribute name (including variants) to a variable name and possibly some logic.
-    
-    e.g. 'is not over 18'
-      -> 'not is_over_18' 
-    '''
-    # Handle the 'not' keyword and replace other characters
-    s = re.sub(r'\bnot\b', 'not ', attribute_name_including_variants)  # Add space after 'not' for proper split
-    parts = re.split(r'\s+', s.strip())  # Split by any whitespace
-    transformed_parts = ['not' if part == 'not' else re.sub(r'\W+', '_', part) for part in parts]
-    return '_'.join(transformed_parts).strip('_')
 
 
 def parse_line(input_line):
@@ -236,43 +167,7 @@ def convert_paragraphs(paragraphs):
 
     if parse_state == 'if block':
         finish_the_if_block(code, conclusion_attribute, logic)
-    
-    # "if" conclusion
-    # 80 the passported test is conducted on the carer or the carer's partner if - style: OPM-conclusion
-    # 81 both - style: OPM-level1
-    # 82 the carer is included in the assessment and - style: OPM-level2
-    # 83 the carer receives the passported benefit - style: OPM-level2
-    # 88  - style: OPM-blankline
 
-    # "Equals" conclusion
-    # 33 the will name change LSC to LAA = the name change LSC to LAA - style: OPM-conclusion
-    # 34  - style: OPM-blankline
-
-
-# Tables
-
-# Properties
-# autofit: True
-# columns: <docx.table._Columns object at 0x106c97a70>
-# part: <docx.parts.document.DocumentPart object at 0x106c1c200>
-# rows: <docx.table._Rows object at 0x106c97b30>
-# style: _TableStyle('Normal Table') id: 4408835392
-# table_direction: None
-
-# Methods:
-# add_column
-# add_row
-# cell
-# column_cells
-# row_cells
-
-# Styles example:
-# the name change Funding Code to LAPSO
-# cell0_style='OPM-conclusion' cell1_style='OPM-conclusion'
-# "Funding Code" | the LAR rules do not apply to this application
-# cell0_style='OPM-conclusion' cell1_style='OPM-level1'
-# "Lord Chancellor’s Guidance on financial eligibility for certificated work" |	otherwise
-# cell0_style='OPM-conclusion' cell1_style='OPM-Alternativeconclusion'
 
 def parse_table(table, table_index):
     code = []
@@ -362,7 +257,10 @@ if __name__ == '__main__':
     with open(args.input_filepath, 'r') as input_f:
         ruletxt = input_f.read()
 
-    process_attributes_csv(args.attributes_csv_filepath)
+    output_python_ast = parse(ruletxt, actions=Actions())
+    output_python = ast.unparse(output_python_ast)
+
+    # process_attributes_csv(args.attributes_csv_filepath)
 
     output = convert2python(ruletxt)
 

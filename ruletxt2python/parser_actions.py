@@ -1,4 +1,4 @@
-from .ruletxt2python import attribute_incl_variants_to_variable
+from ruletxt2python.attributes import attribute_incl_variants_to_variable
 
 import ast
 from ast import Expr, List, Constant, Load, Name, Store

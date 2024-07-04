@@ -1,7 +1,6 @@
-from ..parser import parse, TreeNode
-from ..ruletxtast2py import Actions
+from ..ruletxt_parser import parse
+from ..parser_actions import Actions
 
-import pytest
 import ast
 
 # Rule documentation:

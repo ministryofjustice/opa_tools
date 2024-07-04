@@ -1,0 +1,6 @@
+[project]
+name = "opa-tools"
+version = "0.1"
+
+[tool.setuptools]
+packages = ["ruletxt2python"]
