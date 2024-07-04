@@ -1,7 +1,7 @@
 grammar Ruletxt
 
 Document  <- __ (Rule __)* %document
-Rule      <- IfBlock / Assignment
+Rule      <- IfBlock / Assignment / Comment / EmptyConclusion
 
 Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression %assignment
 IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ Expression %if_block
@@ -19,6 +19,10 @@ OperatorExpression <- OPMLevel __ AllEtc? __ Expression OPMLevel? __ (Operator _
 BracketedOperatorExpression     <- AllEtc? __ OPMLevelUpToBrackets? "(" "]"? Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ __ OPMLevelUpToBrackets? ")" "]"? %bracketed_operator_expression
 OPMLevel <- "[OPM-level" [\d] "]"
 OPMLevelUpToBrackets <- "[OPM-level" [\d]
+
+Comment <- ( "[OPM-blankline]" / "[OPM-commentary]" / "[OPM-RuleName]" / ("[OPM-Heading" [\d]? "]") / ("[TOC" [\d]? "]") ) [ ]* CommentText? %comment
+CommentText <- [^\n]+
+EmptyConclusion <- '[OPM-conclusion]' [ ]* [\n] %empty_conclusion
 
 AllEtc  <- "all" / "both" / "any" / "either"
 Operator <- "and" / "or"

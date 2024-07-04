@@ -3,6 +3,7 @@ from ruletxt2python.attributes import attribute_incl_variants_to_variable
 import ast
 from ast import Expr, List, Constant, Load, Name, Store
 
+
 class Actions(object):
     def __init__(self):
         self.imports = []
@@ -12,8 +13,7 @@ class Actions(object):
         body = [element.elements[0] for element in rules.elements]
 
         imports = [ast.Import(names=[ast.alias(name=import_)]) for import_ in self.imports]
-        return ast.Module(body=imports + body,
-                          type_ignores=[])
+        return PythonFile(imports + body)
     
     def assignment(self, input, start, end, elements):
         attribute = elements[2]
@@ -78,6 +78,13 @@ class Actions(object):
                 values=expressions,
                 type_ignores=[])
 
+    def comment(self, input, start, end, elements):
+        comment_text = elements[2]
+        return Comment(comment_text.text)
+
+    def empty_conclusion(self, input, start, end, elements):
+        return Comment('')
+
     def string(self, input, start, end, elements):
         name = elements[1].text
         return ast.Constant(value=name)
@@ -93,3 +100,26 @@ class Actions(object):
         name = ''.join((e.text for e in elements))
         name = attribute_incl_variants_to_variable(name)
         return Name(id=name, ctx=Store())
+
+class PythonFile(object):
+    # Can't represent a python file as ast.Module, because an AST doesn't include comments.
+    # So create our own object containing a list of AST elements and comments.
+    def __init__(self, statements):
+        self.statements = statements  # list of ASTs and Comments
+
+    def get_code(self):
+        code_string = ''
+        for statement in self.statements:
+            if isinstance(statement, ast.AST):
+                code_string += ast.unparse(statement) + '\n'
+            elif isinstance(statement, Comment):
+                code_string += statement.get_code() + '\n'
+        return code_string
+
+class Comment(object):
+    def __init__(self, comment_string):
+        assert isinstance(comment_string, str)
+        self.comment_string = comment_string
+
+    def get_code(self):
+        return f'# {self.comment_string}'.rstrip()
