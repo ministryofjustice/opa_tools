@@ -28,7 +28,7 @@ def test_if_block_nested():
 [OPM-level1] all
 [OPM-level2(]   "a"
 [OPM-level2]    and
-[OPM-level2]    "b" and "c"
+[OPM-level2]    "b" <> "c"
 [OPM-level1)]'''
     python_file = parse(input, actions=Actions())
     assert python_file.get_code().rstrip() == "abc = 'z' or ('a' and 'b' and 'c')"
@@ -101,8 +101,16 @@ def test_empty_conclusion():
 
 def test_operator_not_equals():
     input = '''[OPM-conclusion] things are good if
-[OPM-level1] the day is <> “Friday”
-'''
+[OPM-level1] the day is <> “Friday”'''
     python_file = parse(input, actions=Actions())
     python_file.get_code()
     assert python_file.get_code().rstrip() == "things_are_good = the_day_is != 'Friday'"
+
+def test_operator_less_than_greater_than():
+    input = '''[OPM-conclusion] its normal if
+[OPM-level1] income tax < salary and
+[OPM-level1] national insurance < income tax
+'''
+    python_file = parse(input, actions=Actions())
+    python_file.get_code()
+    assert python_file.get_code().rstrip() == "its_normal = income_tax < salary and national_insurance < income_tax"

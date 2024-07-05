@@ -3,12 +3,14 @@ grammar Ruletxt
 Document  <- __ (Rule __)* %document
 Rule      <- IfBlock / Assignment / Comment / EmptyConclusion
 
-Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ Expression %assignment
-IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ Expression %if_block
+Assignment <- '[OPM-conclusion]' __ attribute __ '=' __ (OperatorExpression / BracketedOperatorExpression / Comparison / Expression) %assignment
+IfBlock <- '[OPM-conclusion]' __ attribute __ 'if' __ (OperatorExpression / BracketedOperatorExpression / Comparison / Expression) %if_block
 
-Expression     <-  __ (OperatorExpression / BracketedOperatorExpression / date / attribute / string) __ %expression
+OperatorExpression <- OPMLevel __ AllEtc? __ (BracketedOperatorExpression / Comparison / Expression) OPMLevel? __ (Operator __ OPMLevel? (BracketedOperatorExpression / Comparison / Expression))+ %operator_expression
 
-OperatorExpression <- OPMLevel __ AllEtc? __ Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ %operator_expression
+Comparison <- OPMLevel? __ Expression __ Comparator __ Expression %comparison
+
+Expression <-  __ (date / attribute / string) __ %expression
 
 ### Bracketed sections
 # These are complicated due to the line headers. Example:
@@ -16,7 +18,7 @@ OperatorExpression <- OPMLevel __ AllEtc? __ Expression OPMLevel? __ (Operator _
 # [OPM-level3]                    and
 # [OPM-level3]                    the passported benefit being received is not Income Support
 # [OPM-level2)]
-BracketedOperatorExpression     <- AllEtc? __ OPMLevelUpToBrackets? "(" "]"? Expression OPMLevel? __ (Operator __ OPMLevel? Expression)+ __ OPMLevelUpToBrackets? ")" "]"? %bracketed_operator_expression
+BracketedOperatorExpression     <- AllEtc? __ OPMLevelUpToBrackets? "(" "]"? (Comparison / Expression) OPMLevel? __ (Operator __ OPMLevel? (Comparison / Expression))+ __ OPMLevelUpToBrackets? ")" "]"? %bracketed_operator_expression
 OPMLevel <- "[OPM-level" [\d] "]"
 OPMLevelUpToBrackets <- "[OPM-level" [\d]
 
@@ -25,7 +27,8 @@ CommentText <- [^\n]+
 EmptyConclusion <- '[OPM-conclusion]' [ ]* [\n] %empty_conclusion
 
 AllEtc  <- "all" / "both" / "any" / "either"
-Operator <- "and" / "or" / "<>"
+Operator <- "and" / "or"
+Comparator <- "<>" / "<=" / ">=" / "<" / ">"
 string    <-  quote ("\\" . / notaquote)* quote %string
 quote     <- ["“”]
 notaquote <- [^"“”]

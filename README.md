@@ -119,6 +119,8 @@ Converts ruletxt files to Python code.
     ./node_modules/canopy/bin/canopy ruletxt2python/ruletxt.peg --lang python --output ruletxt2python/ruletxt_parser
     ```
 
+    This generates ruletxt2python/ruletxt_parser.py
+
 ### Run
 
 To convert one file:
@@ -127,6 +129,62 @@ To convert one file:
 source venv/bin/activate
 python ruletxt2python/ruletxt2python.py attributes-2024-07-02-23b.csv ../laa-ccms-opa-means-assessment-ruletxt/Work\ Package\ 1/WP1._\(1-7\).ruletxt
 ```
+
+### About the parser
+
+The 'grammar' of ruletxt files is described in `ruletxt.peg`, using standard Parsing Expression Grammar (PEG) notation. Each 'rule' in the grammar is a mix of regexes and other rules, so you can see it is recursive.
+
+The 'parser' `ruletxt_parser.py` is generated from the PEG, using Canopy.
+
+The parser first does the 'lexing' - it reads the text in the ruletxt file, identifying snippets of text as grammar rules, and represents each rule and snippet of text as a node in a tree - this is the 'parsing tree'. For example, OID text `client's name <> "bob"` is identified as an attribute `client's income`, comparator `<` and constant `12000`. These are three nodes, with a parent node 'Expression'.
+
+We also supply the parser with 'actions' in `parser_actions.Actions`. These are python functions for each grammar rule, for converting the parsing tree, in this case into python code. In our example, they'll convert `client's name` to python variable `clients_name`, `<>` to `!=`. It does it recursively starting with the top node 'Document', building up the whole python file, equivalent to the ruletxt input.
+
+#### Why we chose Canopy
+
+We followed [Gabriele Tomassetti's guide to Parsing In Python](https://tomassetti.me/parsing-in-python/) as a basis.
+
+* Tomassetti advises to use a parsing library, unless you have a special need to manually write a parser](https://tomassetti.me/parsing-in-python/), because it's easier to reason about parsing by writing the grammar, and letting a compiler or library do the parsing bit. 
+* Ruletxt is parseable with a standard PEG/CFL parser:
+    * OIA's logic is nestable (e.g. `(a<b and (b<d or e<>f))`), so we need the recursion / tree structure provided by a Context Free Language (CFL) (rather than a regular language)
+    * we introduced brackets into ruletxt to ensure that the parser didn't need to keep track of the recursion level. For example, the parser encountering [OPM-level2], or indent of 8, doesn't know if it is recursing into a nested block or not, unless it knows the previous level or indent. (This is why most programming languages have brackets, and Python causes a bit of a headache for its parser by using spaces)
+* Canopy has the advantage of producing parser code in Java, Python or Ruby, giving us options. And it seemed simple enough to get working. We didn't look very hard at other parser libraries, but since it uses standard PEG grammar, it wouldn't be hard to switch to another.
+
+### Parser development tips:
+
+If you get an exception in ruletxt_parser.py, then you can see how it has interpreted the text by printing `self._cache`. For example:
+```py
+(Pdb) pp(self._cache)
+defaultdict(<class 'dict'>,
+            {'AllEtc': {45: (<object object at 0x1003f8df0>, 45)},
+             'OPMLevel': {32: (<ruletxt2python.ruletxt_parser.TreeNode object at 0x101986450>,
+                               44),
+                          45: (<object object at 0x1003f8df0>, 45)},
+```
+This shows it has identified the grammar rule named 'OPMLevel' between characters 32 and 44 of the input text, and created a TreeNode. You can see the text by printing that TreeNode, or with a slice of the input:
+```py
+(Pdb) self._cache['OPMLevel'][32][0].text
+'[OPM-level1]'
+(Pdb) self._input[32:44]
+'[OPM-level1]'
+```
+There are also objects like `(<object object at 0x1003f8df0>, 45))` which are placeholders. During the parsing these each replaced with a TreeNode or not.
+
+```
+E   RecursionError: maximum recursion depth exceeded
+!!! Recursion detected (same locals & position)
+```
+This RecursionError in the parser is due to recursing back to the same grammar rule at the same offset. For example, in an Expression we find a sub-Expression:
+e.g.
+```py
+ruletxt2python/ruletxt_parser.py:407: in _read_Expression
+    address2 = self._read_Comparison()
+ruletxt2python/ruletxt_parser.py:577: in _read_Comparison
+    address1 = self._read_Expression()
+ruletxt2python/ruletxt_parser.py:407: in _read_Expression
+    address2 = self._read_Comparison()
+```
+This may be what was intended in the Grammar, but the parser doesn't like them both starting in the same place, because they appear the same in the result cache.
 
 ### Convert all files
 

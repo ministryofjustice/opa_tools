@@ -42,7 +42,7 @@ class Actions(object):
         loop = elements[7]
         operator = loop.elements[0].Operator
         expressions.extend(
-            [element.Expression for element in loop.elements]
+            [element.elements[3] for element in loop.elements]
         )
         return self._operator_expression(operator, expressions)
 
@@ -51,7 +51,7 @@ class Actions(object):
         loop = elements[8]
         operator = loop.elements[0].Operator
         expressions.extend(
-            [element.Expression for element in loop.elements]
+            [element.elements[3] for element in loop.elements]
         )
         return self._operator_expression(operator, expressions)
 
@@ -60,22 +60,33 @@ class Actions(object):
             op = ast.And()
         elif operator.text == 'or':
             op = ast.Or()
-        elif operator.text == '<>':
-            op = ast.NotEq()
         else:
             raise NotImplementedError()
-        if type(op) in (ast.And, ast.Or):
-            return ast.BoolOp(
-                op=op,
-                values=expressions,
-                type_ignores=[])
+        return ast.BoolOp(
+            op=op,
+            values=expressions,
+            type_ignores=[])
+
+    def comparison(self, input, start, end, elements):
+        expressions = [elements[2], elements[6]]
+        comparator = elements[4]
+        if comparator.text == '<>':
+            op = ast.NotEq()
+        elif comparator.text == '<':
+            op = ast.Lt()
+        elif comparator.text == '>':
+            op = ast.Gt()
+        elif comparator.text == '<=':
+            op = ast.LtE()
+        elif comparator.text == '>=':
+            op = ast.GtE()
         else:
-            assert len(expressions) == 2
-            return ast.Compare(
-                left=expressions[0],
-                ops=[op],
-                comparators=[expressions[1]]
-            )
+            raise NotImplementedError()
+        return ast.Compare(
+            left=expressions[0],
+            ops=[op],
+            comparators=[expressions[1]]
+        )
 
     def comment(self, input, start, end, elements):
         comment_text = elements[2]
