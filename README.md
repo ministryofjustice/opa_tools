@@ -43,53 +43,54 @@ To view a .docx file as .ruletxt:
 
 ```sh
 source venv/bin/activate
-python docx2ruletxt.py ../laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/Rules/LAR/LAR\ System\ Rules.docx
+python docx2ruletxt.py -i ../laa-ccms-opa-policy-models-zips-extracted/MeansAssessment/Rules/LAR/LAR\ System\ Rules.docx
 ```
 
 ### Convert all .docx files
 
-Locate the folders for the extracted zip and output repo (adjust these if you put them elsewhere):
-
+Get the latest the Zip and extract to Word docs:
 ```sh
-export OPA_REPO_DIR=~/code/laa-ccms-opa-means-v23
-export EXTRACTED_MODELS_DIR=~/code/laa-ccms-opa-policy-models-zips-extracted
-export RULETXT_DIR=~/code/laa-ccms-opa-means-assessment-ruletxt
-export PYTHON_CMD=~/code/opa_tools/venv/bin/python
-export DOCX2RULETXT=~/code/opa_tools/docx2ruletxt.py
-```
-
-Get the latest the Word docs:
-```sh
-cd $OPA_REPO_DIR
+cd ~/code/laa-ccms-opa-means-v23
 git pull
-# If you've previously done this, move aside the old rules directory
-mv $EXTRACTED_MODELS_DIR /tmp/
-unzip MeansAssessment.zip -d $EXTRACTED_MODELS_DIR
+# If you've previously done this, move aside the old extracted model
+mv ../laa-ccms-opa-means-v23-extracted /tmp/
+unzip MeansAssessment.zip -d ../laa-ccms-opa-means-v23-extracted
 ```
 
-Convert the Word docs:
-
+Convert the Word docs to Ruletxt
 ```sh
-cd $EXTRACTED_MODELS_DIR/MeansAssessment/rules
-find . -name "*.docx" -exec sh -c '
-  FILE="$1"
-  RULETXT_DIR="$2"
-  DIRNAME=$(dirname "$FILE")
-  BASENAME=$(basename "$FILE" .docx)
-  NEWNAME="${BASENAME// /_}.ruletxt"
-  DEST_DIR="$RULETXT_DIR/$DIRNAME"
-  mkdir -p "$DEST_DIR"
-  $PYTHON_CMD $DOCX2RULETXT "$FILE" "$DEST_DIR/$NEWNAME" || echo "$FILE"
-' sh {} "$RULETXT_DIR" \;
-cd $RULETXT_DIR
+# If you've previously done this, delete the old ruletxt files
+rm -rf ../laa-ccms-opa-means-assessment-ruletxt/*
+python docx2ruletxt.py -d ../laa-ccms-opa-means-v23-extracted/MeansAssessment/Rules -o ../laa-ccms-opa-means-assessment-ruletxt
 ```
 
 Commit the changes to the repo:
-
 ```sh
-cd $RULETXT_DIR
+cd ~/code/laa-ccms-opa-means-assessment-ruletxt
 git commit -a -m 'Update'
 git push
+```
+
+### Convert the full git history of .docx files
+
+Get the latest input repo, with the zipped OPA rules:
+```sh
+cd ~/code/laa-ccms-opa-means-v23
+git pull
+```
+
+Prepare an output repo:
+```sh
+cd ~/code
+mkdir laa-ccms-opa-means-ruletxt
+cd laa-ccms-opa-means-ruletxt
+git init
+```
+
+Convert all git commits:
+```sh
+source venv/bin/activate
+ruletxt2python/convert_repo.sh ~/code/laa-ccms-opa-means-v23 MeansAssessment.zip ../laa-ccms-opa-means-ruletxt
 ```
 
 

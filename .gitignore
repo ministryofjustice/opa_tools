@@ -5,3 +5,4 @@ __pycache__
 .DS_Store
 node_modules
 ruletxt2python/ruletxt_parser.py
+*.egg-info
