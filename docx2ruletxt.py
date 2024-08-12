@@ -4,21 +4,6 @@ import sys
 import docx
 
 
-if len(sys.argv) > 1:
-    input_filepath = sys.argv[1]
-    if os.path.basename(input_filepath).startswith('~$'):
-        print(f'Ignoring tempfile created by Word {input_filepath}')
-        sys.exit(0)
-else:
-    print("No input filepath provided")
-    sys.exit(1)
-print(input_filepath)
-
-f = None
-if len(sys.argv) > 2:
-    out_filepath = sys.argv[2]
-    f = open(out_filepath, 'w')
-
 def print_(header_tag, body):
     padding = ' ' * (max(len('[table-OPM-conclusion]') - len(header_tag) - 2, 0))
     body = body.rstrip()
@@ -94,14 +79,30 @@ def process_nonrule_table(table, doc_index):
         row_cells = tuple(c for c in r.cells)
         print_('nonrule-table', ' | '.join((cell.text for cell in row_cells)))
 
-document = docx.Document(input_filepath)
-current_indent = 1
-for doc_index, doc_object in enumerate(document.iter_inner_content()):
-    if isinstance(doc_object, docx.text.paragraph.Paragraph):
-        process_paragraph(doc_object, doc_index)
-    elif isinstance(doc_object, docx.table.Table):
-        if current_indent > 1:
-            close_paragraph_brackets()
-        process_table(doc_object, doc_index)
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        input_filepath = sys.argv[1]
+        if os.path.basename(input_filepath).startswith('~$'):
+            print(f'Ignoring tempfile created by Word {input_filepath}')
+            sys.exit(0)
     else:
-        print_('ERROR', f'Unhandled doc object: {type(doc_object)}')
+        print("No input filepath provided")
+        sys.exit(1)
+    print(input_filepath)
+
+    f = None
+    if len(sys.argv) > 2:
+        out_filepath = sys.argv[2]
+        f = open(out_filepath, 'w')
+
+    document = docx.Document(input_filepath)
+    current_indent = 1
+    for doc_index, doc_object in enumerate(document.iter_inner_content()):
+        if isinstance(doc_object, docx.text.paragraph.Paragraph):
+            process_paragraph(doc_object, doc_index)
+        elif isinstance(doc_object, docx.table.Table):
+            if current_indent > 1:
+                close_paragraph_brackets()
+            process_table(doc_object, doc_index)
+        else:
+            print_('ERROR', f'Unhandled doc object: {type(doc_object)}')
