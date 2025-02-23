@@ -23,16 +23,38 @@ def test_if_block_with_spaces_in_attributes():
     python_file = parse(input, actions=Actions())
     assert python_file.get_code().rstrip() == "the_upcoming_changes_section_is_visible = the_LAR_rules_apply_to_this_application and some_attribute"
 
-def test_if_block_nested():
+def test_if_block_nested_simple():
     input = '''[OPM-conclusion]  abc if
-[OPM-level1] "z" or
 [OPM-level1] all
-[OPM-level2(]   "a"
+[OPM-level2(]   a
 [OPM-level2]    and
-[OPM-level2]    "b" <> "c"
-[OPM-level1)]'''
+[OPM-level2]    b
+[OPM-level1)] or
+[OPM-level1]  x'''
     python_file = parse(input, actions=Actions())
-    assert python_file.get_code().rstrip() == "abc = 'z' or ('a' and 'b' and 'c')"
+    assert python_file.get_code().rstrip() == "abc = a and b or x"
+
+def test_if_block_nested_with_close_bracket():
+    input = '''[OPM-conclusion]  abc if
+[OPM-level1] all
+[OPM-level2(]   a
+[OPM-level2]    and
+[OPM-level2]    b
+[close-bracket)]'''
+    python_file = parse(input, actions=Actions())
+    assert python_file.get_code().rstrip() == "abc = a and b or x"
+
+def test_if_block_nested_with_preceding():
+    input = '''[OPM-conclusion]  abc if
+[OPM-level1] z or
+[OPM-level1] all
+[OPM-level2(]   a
+[OPM-level2]    and
+[OPM-level2]    b
+[OPM-level1)] or
+[OPM-level1]  x'''
+    python_file = parse(input, actions=Actions())
+    assert python_file.get_code().rstrip() == "abc = z or a and b or x"
 
 def test_if_block_nested_with_spaces_in_attributes():
     input = '''[OPM-conclusion]  a b c if

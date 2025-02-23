@@ -18,9 +18,10 @@ Expression <-  __ (date / attribute / string) __ %expression
 # [OPM-level3]                    and
 # [OPM-level3]                    the passported benefit being received is not Income Support
 # [OPM-level2)]
-BracketedOperatorExpression     <- AllEtc? __ OPMLevelUpToBrackets? "(" "]"? (Comparison / Expression) OPMLevel? __ (Operator __ OPMLevel? (Comparison / Expression))+ __ OPMLevelUpToBrackets? ")" "]"? %bracketed_operator_expression
+BracketedOperatorExpression     <- AllEtc? __ BracketStart (Comparison / Expression) (__ Operator __ OPMLevel? (Comparison / Expression))+ __ BracketEnd %bracketed_operator_expression
+BracketStart <- "[OPM-level" [\d] "(" "]"
+BracketEnd <- "[OPM-level" [\d] ")" "]"
 OPMLevel <- "[OPM-level" [\d] "]"
-OPMLevelUpToBrackets <- "[OPM-level" [\d]
 
 Comment <- ( "[OPM-blankline]" / "[OPM-commentary]" / "[OPM-RuleName]" / ("[OPM-Heading" [\d]? "]") / ("[TOC" [\d]? "]") ) [ ]* CommentText? %comment
 CommentText <- [^\n]+

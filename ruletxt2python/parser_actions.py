@@ -3,12 +3,14 @@ from ruletxt2python.attributes import attribute_incl_variants_to_variable
 import ast
 from ast import Expr, List, Constant, Load, Name, Store
 
+log = __import__("logging").getLogger()
 
 class Actions(object):
     def __init__(self):
         self.imports = []
 
     def document(self, input, start, end, elements):
+        log.debug(f'<Document>')
         rules = elements[1]
         body = [element.elements[0] for element in rules.elements]
 
@@ -16,6 +18,7 @@ class Actions(object):
         return PythonFile(imports + body)
     
     def assignment(self, input, start, end, elements):
+        log.debug(f'<Assignment>')
         attribute = elements[2]
         expression = elements[6]
         return ast.Assign(
@@ -24,6 +27,7 @@ class Actions(object):
             lineno=0)
 
     def if_block(self, input, start, end, elements):
+        log.debug(f'<IfBlock>')
         attribute = elements[2]
         expression = elements[6]
         # OPA's "if" is actually assignment
@@ -35,9 +39,11 @@ class Actions(object):
         # return f'{elements[3].text} = {elements[0].text}'
 
     def expression(self, input, start, end, elements):
+        log.debug(f'<Expression {elements[1]}>')
         return elements[1]
 
     def operator_expression(self, input, start, end, elements):
+        log.debug('<OperatorExpression>')
         expressions = [elements[4]]
         loop = elements[7]
         operator = loop.elements[0].Operator
@@ -47,6 +53,7 @@ class Actions(object):
         return self._operator_expression(operator, expressions)
 
     def bracketed_operator_expression(self, input, start, end, elements):
+        log.debug('<BracketedOperatorExpression>')
         expressions = [elements[5]]
         loop = elements[8]
         operator = loop.elements[0].Operator
@@ -68,6 +75,7 @@ class Actions(object):
             type_ignores=[])
 
     def comparison(self, input, start, end, elements):
+        log.debug('<Comparison>')
         expressions = [elements[2], elements[6]]
         comparator = elements[4]
         if comparator.text == '<>':
