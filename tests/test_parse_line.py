@@ -1,4 +1,4 @@
-from ..ruletxt2python import parse_line
+from ruletxt2python.ruletxt2py import parse_line
 
 def test_parse_line():
     input_line = "[OPM-conclusion]        the upcoming changes section is visible if"

@@ -1,4 +1,5 @@
-from ..ruletxt2python import convert_logic_with_indents, process_attributes_csv_buffer
+from ruletxt2python.ruletxt2py import convert_logic_with_indents
+from ruletxt2python.attributes import process_attributes_csv_buffer
 
 import pytest
 

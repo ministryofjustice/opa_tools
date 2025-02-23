@@ -59,6 +59,8 @@ unzip MeansAssessment.zip -d ../laa-ccms-opa-means-v23-extracted
 
 Convert the Word docs to Ruletxt
 ```sh
+cd ~/code/opa_tools
+. venv/bin/activate
 # If you've previously done this, delete the old ruletxt files
 rm -rf ../laa-ccms-opa-means-assessment-ruletxt/*
 python docx2ruletxt.py -d ../laa-ccms-opa-means-v23-extracted/MeansAssessment/Rules -o ../laa-ccms-opa-means-assessment-ruletxt

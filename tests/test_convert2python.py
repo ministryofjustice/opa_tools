@@ -1,4 +1,5 @@
-from ..ruletxt2python import convert2python, process_attributes_csv_buffer
+from ruletxt2python.ruletxt2py import convert2python
+from ruletxt2python.attributes import process_attributes_csv_buffer
 
 import pytest
 

@@ -1,4 +1,4 @@
-from ..ruletxt2python import attribute_root_name_to_variable, process_attributes_csv_buffer, get_attributes_converter, identify_attributes
+from ruletxt2python.attributes import attribute_root_name_to_variable, process_attributes_csv_buffer, get_attributes_converter, identify_attributes
 
 import pytest
 

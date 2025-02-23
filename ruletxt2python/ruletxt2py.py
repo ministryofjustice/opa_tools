@@ -1,6 +1,6 @@
-from parser_actions import Actions
-from ruletxt_parser import parse
-from attributes import identify_attributes, attribute_incl_variants_to_variable, attribute_root_name_to_variable
+from .parser_actions import Actions
+from .ruletxt_parser import parse
+from .attributes import identify_attributes, attribute_incl_variants_to_variable, attribute_root_name_to_variable
 
 import argparse
 import re

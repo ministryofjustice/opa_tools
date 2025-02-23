@@ -1,5 +1,6 @@
-from ..ruletxt_parser import parse
-from ..parser_actions import Actions
+
+from ruletxt2python.ruletxt_parser import parse
+from ruletxt2python.parser_actions import Actions
 
 import ast
 
